@@ -49,7 +49,7 @@ def play_game( highteam, lowteam ):
     highseed = highteam['seed']
     lowseed = lowteam['seed']
 
-    # Overly-simplistict algorithm for determining winner. High
+    # Simplistic algorithm for determining winner. High
     # seed has a {{lowseed}} in {{sum of seeds}} chance of winning.
     # E.g., in a game of a 1 seed vs a 16 seed, the 1 seed has a
     # 16 in 17 chance of winning. In a game of a 2 seed vs a 3
