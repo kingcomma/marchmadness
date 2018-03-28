@@ -1,38 +1,40 @@
 import random
 
-def get_teams(filename):
+def get_teams(year):
 
     '''
-    Open up txt files representing each bracket region and
-    parse into an list of dicts, one for each team.
+    Open up txt files representing an entire bracket and parse
+    into a dict with one key for each region, the value of which
+    is a list of dicts, one for each team.
     '''
 
-    teams = []
+    teams = {}
 
     # split up CSV into list of dicts, one for each time
-    with open( filename, 'r' ) as all_teams:
+    with open( 'teams_%s.csv' % year, 'r' ) as all_teams:
         for team in all_teams:
-            t = team.strip().split(',')
-            teams.append(dict(
-                seed=int(t[0]),
-                school=t[1],
-                region=t[2],
-                placement=False
+            seed, school, region = team.strip().split(',')[0:3]
+            
+            if region not in teams:
+                teams[region] = []
+
+            teams[region].append(dict(
+                seed=int(seed),
+                school=school,
+                region=region,
+                placement=None
             ))
 
-    # sort teams into regions and then by seed
-    teams = sorted( teams, key=lambda team: (team['region'], team['seed']) )
-
-    # get unique regions
-    regions = set([team['region'] for team in teams])
-
     # determine starting placement for each team in each region
-    for region in regions:
-        region_teams = [team for team in teams if team['region'] == region]
-        
-        for i in range(len(region_teams)/2):
-            region_teams[i]['placement'] = region_teams[i]['seed']
-            region_teams[-(i+1)]['placement'] = region_teams[i]['seed']
+    for region in teams:
+        teams[region] = sorted( teams[region], key=lambda team: team['seed'] )
+
+        # assign placement based on seed, where placement is the higher of
+        # the two seeds in a team's first round game
+        for i in range(len(teams[region])/2):
+            teams[region][i]['placement'] = teams[region][i]['seed']
+            teams[region][-(i+1)]['placement'] = teams[region][i]['seed']
+            # -(i+1), or team i places from bottom
 
     return teams
 
@@ -47,11 +49,11 @@ def play_game( highteam, lowteam ):
     highseed = highteam['seed']
     lowseed = lowteam['seed']
 
-    # Over-simplified algorithm for determining winner. High seed
-    # has a {{lowseed}} in {{sum of seeds}} chance of winning.
-    # E.g., in a game of a 1 seed vs a 16 seed, the 1 seed
-    # has a 16 in 17 chance of winning. In a game of a 2 seed
-    # vs a 3 seed, the 2 seed has a 3 in 5 chance of winning.
+    # Overly-simplistict algorithm for determining winner. High
+    # seed has a {{lowseed}} in {{sum of seeds}} chance of winning.
+    # E.g., in a game of a 1 seed vs a 16 seed, the 1 seed has a
+    # 16 in 17 chance of winning. In a game of a 2 seed vs a 3
+    # seed, the 2 seed has a 3 in 5 chance of winning.
     if random.randrange(1, highseed + lowseed) < lowseed:
         return highteam
 
